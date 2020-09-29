@@ -1,0 +1,2 @@
+export const CHANGE_SEASON_ID = 'CHANGE_SEASON_ID';
+export const SECTION_LOADING = 'SECTION_LOADING';
