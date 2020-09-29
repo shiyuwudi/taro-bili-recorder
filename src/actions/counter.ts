@@ -1,35 +1,61 @@
 import Taro from "@tarojs/taro";
 import {
-  CHANGE_SEASON_ID,
+  CHANGE_MEDIA_ID,
   SECTION_LOADING,
+  MEDIA_DATA,
+  SECTION_DATA,
 } from '../constants/counter'
+import {IMediaResponse, ISectionResponse} from "../typings";
 
-export const changeSeasonIdAction = (seasonId) => {
+export const changeMediaIdAction = (seasonId) => {
   return {
-    type: CHANGE_SEASON_ID,
+    type: CHANGE_MEDIA_ID,
     payload: seasonId,
   }
 }
 
-export const sectionLoading = (payload) => {
+const queryLoading = (payload) => {
   return {
     type: SECTION_LOADING,
     payload: payload,
   }
 }
 
-export const getSectionAction = (seasonId: string) => {
+export const mediaDataAction = (payload) => ({ type: MEDIA_DATA, payload });
+export const sectionDataAction = (payload) => ({ type: SECTION_DATA, payload });
+
+export const getSectionAction = (mediaId: string) => {
   return dispatch => {
-    // setTimeout(() => {
-    //   dispatch(add())
-    // }, 2000)
     (async () => {
-      dispatch(sectionLoading(true));
-      const resp = await Taro.request({
-        url: `https://api.bilibili.com/pgc/web/season/section?season_id=${seasonId}`,
+      dispatch(queryLoading(true));
+      console.log('mediaId', mediaId);
+      const resp0 = await Taro.request({
+        url: `https://api.bilibili.com/pgc/review/user?media_id=${mediaId}`,
       });
-      dispatch(sectionLoading(false));
-      console.log(111, resp.data);
+      const mediaResponse: IMediaResponse = resp0.data;
+      if (mediaResponse.code !== 0) {
+        Taro.showToast({
+          title: mediaResponse.message,
+        });
+        dispatch(queryLoading(false));
+        return;
+      }
+      dispatch(mediaDataAction(mediaResponse.result));
+      const resp1 = await Taro.request({
+        url: `https://api.bilibili.com/pgc/web/season/section?season_id=${mediaResponse.result.media.season_id}`,
+      });
+      const sectionResponse: ISectionResponse = resp1.data;
+      if (sectionResponse.code !== 0) {
+        Taro.showToast({
+          title: sectionResponse.message,
+        });
+        dispatch(queryLoading(false));
+        return;
+      }
+      dispatch(sectionDataAction(sectionResponse.result));
+      dispatch(queryLoading(false));
+      console.log('media data', mediaResponse.result);
+      console.log('section data', sectionResponse.result);
     })();
   }
 }

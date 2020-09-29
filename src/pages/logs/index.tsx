@@ -1,14 +1,13 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import {Text, View} from '@tarojs/components'
-import {changeSeasonIdAction, getSectionAction} from '../../actions/counter'
+import {Image, Text, View} from '@tarojs/components'
+import {changeMediaIdAction, getSectionAction} from '../../actions/counter'
 import './index.less'
+import {ICounter} from "../../typings";
+import empty from '../../assets/empty.jpeg';
 
 type PageStateProps = {
-  counter: {
-    seasonId: string,
-    sectionLoading: boolean,
-  }
+  counter: ICounter;
 }
 
 type PageDispatchProps = {
@@ -24,31 +23,27 @@ type IProps = PageStateProps & PageDispatchProps & PageOwnProps
   counter
 }), (dispatch) => ({
   changeSeasonId (seasonId) {
-    dispatch(changeSeasonIdAction(seasonId));
+    dispatch(changeMediaIdAction(seasonId));
   },
   getSection (seasonId: string) {
     dispatch(getSectionAction(seasonId));
   },
 }))
 class Index extends Component<IProps> {
-  // componentWillReceiveProps (nextProps) {
-  //   console.log(this.props, nextProps
-  // }
-
-  componentWillUnmount () { }
-
-  componentDidShow () {}
-
-  componentDidHide () { }
 
   query = () => {
-    this.props.getSection(this.props.counter.seasonId);
+    this.props.getSection(this.props.counter.mediaId);
   }
 
   render () {
+    const ratio = 5;
     return (
-      <View className='index'>
-        <Text>555</Text>
+      <View className='log-index'>
+        <View className='no-result'>
+          <Text className='title'>暂无记录</Text>
+          <Text className='content'>在搜索页面查询后，添加的番剧会出现在这里</Text>
+          <Image src={empty} style={`width:${660/ratio}px; height:${726/ratio}px`} />
+        </View>
       </View>
     )
   }
