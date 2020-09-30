@@ -4,6 +4,7 @@ import {
   SECTION_LOADING,
   MEDIA_DATA,
   SECTION_DATA,
+  SESSION_DATA,
 } from '../constants/counter'
 import {IMediaResponse, ISectionResponse} from "../typings";
 
@@ -23,6 +24,7 @@ const queryLoading = (payload) => {
 
 export const mediaDataAction = (payload) => ({ type: MEDIA_DATA, payload });
 export const sectionDataAction = (payload) => ({ type: SECTION_DATA, payload });
+export const sessionData = (payload) => ({ type: SESSION_DATA, payload });
 
 export const getSectionAction = (mediaId: string) => {
   return dispatch => {
@@ -57,5 +59,23 @@ export const getSectionAction = (mediaId: string) => {
       console.log('media data', mediaResponse.result);
       console.log('section data', sectionResponse.result);
     })();
+  }
+}
+
+export const checkSessionAction = () => {
+  return dispatch => {
+    Taro.checkSession({
+      success: function (data) {
+        // session_key 未过期，并且在本生命周期一直有效
+        console.log("check session success", data);
+        dispatch(sessionData(data));
+      },
+      fail: function (err) {
+        // session_key 已经失效，需要重新执行登录流程
+        // Taro.login() //重新登录
+        console.log("check session failed", err);
+        dispatch(sessionData(null));
+      }
+    })
   }
 }

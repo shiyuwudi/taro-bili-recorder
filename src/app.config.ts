@@ -1,7 +1,9 @@
 export default {
   pages: [
     'pages/index/index',
-    'pages/logs/index'
+    'pages/logs/index',
+    'pages/wishlist/index',
+    'pages/my/index',
   ],
   window: {
     backgroundTextStyle: 'light',
@@ -23,9 +25,21 @@ export default {
       },
       {
         pagePath: 'pages/logs/index',
-        selectedIconPath: 'assets/menu_1.png',
-        iconPath: './assets/menu_0.png',
-        text: '进度',
+        selectedIconPath: 'assets/progress_1.png',
+        iconPath: './assets/progress_0.png',
+        text: '在看',
+      },
+      {
+        pagePath: 'pages/wishlist/index',
+        selectedIconPath: 'assets/wishlist_1.png',
+        iconPath: './assets/wishlist_0.png',
+        text: '想看',
+      },
+      {
+        pagePath: 'pages/my/index',
+        selectedIconPath: 'assets/my_1.png',
+        iconPath: './assets/my_0.png',
+        text: '我的',
       },
     ],
   },

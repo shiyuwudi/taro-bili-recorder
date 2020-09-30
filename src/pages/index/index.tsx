@@ -132,7 +132,6 @@ class Index extends Component<IProps> {
           <Input
             type='number'
             placeholder='输入media_id（数字）'
-            focus
             style={{marginBottom: 20}}
             value={mediaId}
             onInput={e => this.props.changeMediaId(e.detail.value)}

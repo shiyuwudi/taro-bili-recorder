@@ -3,6 +3,7 @@ import {
   SECTION_LOADING,
   MEDIA_DATA,
   SECTION_DATA,
+  SESSION_DATA,
 } from '../constants/counter'
 import {ICounter} from "../typings";
 import {IS_DEV} from "../constants";
@@ -13,6 +14,7 @@ const INITIAL_STATE: ICounter = {
   queryLoading: false,
   mediaData: IS_DEV ? sampleMedia : null,
   sectionData: IS_DEV ? sampleSection : null,
+  session: null,
 }
 
 export default function counter (state = INITIAL_STATE, action) {
@@ -36,6 +38,11 @@ export default function counter (state = INITIAL_STATE, action) {
       return {
         ...state,
         queryLoading: action.payload,
+      }
+    case SESSION_DATA:
+      return {
+        ...state,
+        session: action.payload,
       }
      default:
        return state

@@ -120,6 +120,11 @@ export interface ICounter {
   queryLoading: boolean;
   mediaData: null | MediaResult;
   sectionData: null | SectionResult;
+  session: null | WeappSession;
+}
+
+export interface WeappSession {
+  
 }
 
 
