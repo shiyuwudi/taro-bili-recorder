@@ -1,11 +1,12 @@
 import React, {Component} from 'react'
 import Taro from "@tarojs/taro";
 import {connect} from 'react-redux'
-import {Image, View, Button, Text} from '@tarojs/components'
-import {checkSessionAction} from '../../actions/counter'
+import {Button, OpenData, View} from '@tarojs/components'
+import {checkSessionAction, sessionData} from '../../actions/counter'
 import './index.less'
 import {ICounter} from "../../typings";
-import empty from '../../assets/avatar_default.png';
+import {SERVER_URL} from "../../constants";
+import {toast} from "../../utils";
 
 type PageStateProps = {
   counter: ICounter;
@@ -13,6 +14,7 @@ type PageStateProps = {
 
 type PageDispatchProps = {
   checkSession: () => void;
+  loginSuccess: (openid: string) => void;
 }
 
 type PageOwnProps = {}
@@ -25,6 +27,9 @@ type IProps = PageStateProps & PageDispatchProps & PageOwnProps
   checkSession () {
     dispatch(checkSessionAction());
   },
+  loginSuccess (openid: string) {
+    dispatch(sessionData({ openid }));
+  },
 }))
 class Index extends Component<IProps> {
 
@@ -32,32 +37,36 @@ class Index extends Component<IProps> {
     this.props.checkSession();
   }
 
-  login() {
-    // Taro.login({
-    //   success: function (res) {
-    //     if (res.code) {
-    //       (async () => {
-    //         //发起网络请求
-    //         const resp = await Taro.request({
-    //           url: 'https://test.com/onLogin',
-    //           data: {
-    //             code: res.code
-    //           }
-    //         });
-    //         console.log("登录成功！", res)
-    //       })();
-    //     } else {
-    //       console.log('登录失败！' + res.errMsg)
-    //     }
-    //   }
-    // });
-
-    (async () => {
-      const resp = await Taro.request({
-        url: 'https://ec2-13-59-31-76.us-east-2.compute.amazonaws.com/',
-      });
-      console.log("resp", resp);
-    })();
+  login = () => {
+    const loginSuccess = this.props.loginSuccess;
+    Taro.login({
+      success: function (res) {
+        if (res.code) {
+          (async () => {
+            console.log("登录成功！微信返回", res);
+            // 发起网络请求
+            const resp = await Taro.request({
+              url: `${SERVER_URL}/wx/login`,
+              method: "POST",
+              data: {
+                code: res.code,
+              }
+            });
+            console.log('后台返回', resp);
+            const { success, data } = resp.data;
+            if (success && data && data.openid) {
+              loginSuccess(data.openid);
+              toast('欢迎回来，主人！');
+            } else {
+              toast('后台登录失败！' + JSON.stringify(resp.data));
+            }
+          })();
+        } else {
+          toast('微信登录失败！');
+          console.log('微信登录失败！' + res.errMsg)
+        }
+      }
+    });
   }
 
   render () {
@@ -67,12 +76,12 @@ class Index extends Component<IProps> {
     return (
       <View className='container'>
         <View className='header'>
-          <View className='image-con center-item'>
-            <Image src={empty} style='width:44px; height: 44px; border-radius: 22px' /> 
+          <View className='avatar'>
+            <OpenData type='userAvatarUrl' />
           </View>
           <View className='login-button-wrapper center-item'>
             {session ? (
-              <Text>{JSON.stringify(session, null, 2)}</Text>
+              <OpenData type='userNickName' />
             ) : (
               <Button className='login-button' type='primary' size='mini' onClick={this.login}>点击登录</Button>
             )}

@@ -68,11 +68,14 @@ export const checkSessionAction = () => {
       success: function (data) {
         // session_key 未过期，并且在本生命周期一直有效
         console.log("check session success", data);
-        dispatch(sessionData(data));
+        if (data.errMsg !== "checkSession:ok") {
+          dispatch(sessionData(data));
+        } else {
+          dispatch(sessionData(null));
+        }
       },
       fail: function (err) {
         // session_key 已经失效，需要重新执行登录流程
-        // Taro.login() //重新登录
         console.log("check session failed", err);
         dispatch(sessionData(null));
       }
