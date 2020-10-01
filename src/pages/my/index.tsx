@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 import Taro from "@tarojs/taro";
 import {connect} from 'react-redux'
-import {Button, OpenData, View} from '@tarojs/components'
+import {Button, OpenData, Text, View} from '@tarojs/components'
 import {checkSessionAction, sessionData} from '../../actions/counter'
 import './index.less'
 import {ICounter} from "../../typings";
@@ -86,6 +86,20 @@ class Index extends Component<IProps> {
               <Button className='login-button' type='primary' size='mini' onClick={this.login}>点击登录</Button>
             )}
           </View>
+        </View>
+        <View>
+          <Text>
+            在看：1部
+            想看：3部
+            弃坑：100部
+            总共看了：200集
+            番剧平均评分：3.2
+            我的平均评分：8.2
+            今天看了：3集
+            本周看了：20集
+            超过了30%的网友。。
+          </Text>
+
         </View>
       </View>
     )

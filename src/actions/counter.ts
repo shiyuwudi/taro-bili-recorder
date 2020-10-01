@@ -5,8 +5,11 @@ import {
   MEDIA_DATA,
   SECTION_DATA,
   SESSION_DATA,
+  SEARCH_RESULTS,
 } from '../constants/counter'
 import {IMediaResponse, ISectionResponse} from "../typings";
+import {SERVER_URL} from "../constants";
+import {toast} from "../utils";
 
 export const changeMediaIdAction = (seasonId) => {
   return {
@@ -25,16 +28,22 @@ const queryLoading = (payload) => {
 export const mediaDataAction = (payload) => ({ type: MEDIA_DATA, payload });
 export const sectionDataAction = (payload) => ({ type: SECTION_DATA, payload });
 export const sessionData = (payload) => ({ type: SESSION_DATA, payload });
+export const searchResults = (payload) => ({ type: SEARCH_RESULTS, payload });
 
-export const getSectionAction = (mediaId: string) => {
+export const getSectionAction = (keyword: string) => {
   return dispatch => {
     (async () => {
       dispatch(queryLoading(true));
-      console.log('mediaId', mediaId);
-      const resp0 = await Taro.request({
-        url: `https://api.bilibili.com/pgc/review/user?media_id=${mediaId}`,
+      console.log('keyword', keyword);
+      const resp = await Taro.request({
+        url: `${SERVER_URL}/bangumi/search?keyword=${keyword}`,
       });
-      const mediaResponse: IMediaResponse = resp0.data;
+      toast(`${resp.data.data.numResults}`);
+      console.log('番剧搜索结果', resp);
+      dispatch(queryLoading(false));
+      dispatch(searchResults(resp.data.data.result));
+      return;
+      const mediaResponse: IMediaResponse = resp.data;
       if (mediaResponse.code !== 0) {
         Taro.showToast({
           title: mediaResponse.message,

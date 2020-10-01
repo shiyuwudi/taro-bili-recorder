@@ -4,7 +4,7 @@
 	"description": "bangumi recorder",
 	"appid": "wx5e9e2a09ecc0350b",
 	"setting": {
-		"urlCheck": true,
+		"urlCheck": false,
 		"es6": false,
 		"enhance": false,
 		"postcss": false,

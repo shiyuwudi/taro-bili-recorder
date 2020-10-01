@@ -121,11 +121,73 @@ export interface ICounter {
   mediaData: null | MediaResult;
   sectionData: null | SectionResult;
   session: null | WeappSession;
+  searchResults: ISearchResult[];
 }
 
-export interface WeappSession {
-  
+export interface WeappSession {}
+
+// 搜索结果
+export interface MediaScore {
+  user_count: number;
+  score: number;
 }
+
+export interface Ep {
+  id: number;
+  cover: string;
+  title: string;
+  url: string;
+  release_date: string;
+  badges: any[];
+  index_title: string;
+  long_title: string;
+}
+
+export interface ISearchResult {
+  media_id: number;
+  season_id: number;
+  type: string;
+  title: string;
+  org_title: string;
+  cover: string;
+  media_type: number;
+  areas: string;
+  styles: string;
+  cv: string;
+  staff: string;
+  play_state: number;
+  goto_url: string;
+  desc: string;
+  corner: number;
+  pubtime: number;
+  media_mode: number;
+  is_avid: boolean;
+  fix_pubtime_str: string;
+  media_score: MediaScore;
+  hit_columns?: any;
+  all_net_name: string;
+  all_net_icon: string;
+  all_net_url: string;
+  angle_title: string;
+  angle_color: number;
+  display_info: any[];
+  hit_epids: string;
+  pgc_season_id: number;
+  season_type: number;
+  season_type_name: string;
+  selection_style: string;
+  ep_size: number;
+  url: string;
+  button_text: string;
+  is_follow: number;
+  is_selection: number;
+  eps: Ep[];
+  badges: any[];
+}
+
+
+
+
 
 
 

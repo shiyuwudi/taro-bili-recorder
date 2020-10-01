@@ -3,4 +3,5 @@ export const SECTION_LOADING = 'SECTION_LOADING';
 export const MEDIA_DATA = 'MEDIA_DATA';
 export const SECTION_DATA = 'SECTION_DATA';
 export const SESSION_DATA = 'SESSION_DATA';
+export const SEARCH_RESULTS = 'SEARCH_RESULTS';
 
