@@ -4,6 +4,7 @@ export default {
     'pages/logs/index',
     'pages/wishlist/index',
     'pages/my/index',
+    'pages/detail/index'
   ],
   window: {
     backgroundTextStyle: 'light',
