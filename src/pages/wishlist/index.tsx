@@ -6,6 +6,7 @@ import './index.less'
 import {ICounter, ISearchResult} from "../../typings";
 import {db, ILocalMedia} from "../../db/db";
 import {SearchResult} from "../../components/SearchResult";
+import NoData from "../../components/NoData";
 
 type PageStateProps = {
   counter: ICounter;
@@ -56,8 +57,14 @@ class Index extends Component<IProps, IState> {
   };
 
   render () {
-    return (
-      <View className='log-index'>
+    let content;
+    const { data } = this.state;
+    if (!data || data.length === 0) {
+      content = (
+        <NoData />
+      );
+    } else {
+      content = (
         <ScrollView
           className='desc-scroll-view'
           scrollY
@@ -66,10 +73,19 @@ class Index extends Component<IProps, IState> {
           {this.state.data.map(({ id, serverData }) => (
             <View key={id} onClick={() => this.onRowClick(serverData)}>
               <SearchResult data={serverData} />
-              {/*{JSON.stringify(serverData,null,2)}*/}
             </View>
           ))}
         </ScrollView>
+      );
+    }
+    return (
+      <View className='log-index'>
+        {
+          data && data.length > 0 && (
+            <View style='margin-bottom: 20px;'>共{data.length}条</View>
+          )
+        }
+        {content}
       </View>
     )
   }

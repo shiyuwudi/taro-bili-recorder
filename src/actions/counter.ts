@@ -38,7 +38,6 @@ export const getSectionAction = (keyword: string) => {
       const resp = await Taro.request({
         url: `${SERVER_URL}/bangumi/search?keyword=${keyword}`,
       });
-      toast(`${resp.data.data.numResults}`);
       console.log('番剧搜索结果', resp);
       dispatch(queryLoading(false));
       dispatch(searchResults(resp.data.data.result));

@@ -41,7 +41,7 @@ class Index extends Component<IProps> {
     console.log('onRowClick', data);
     // 传入参数 id=2&type=test
     Taro.navigateTo({
-      url: '/pages/detail/index?mediaId=' + data.media_id,
+      url: '/pages/detail/index?from=index&mediaId=' + data.media_id,
     })
   };
 
@@ -55,8 +55,7 @@ class Index extends Component<IProps> {
       <View className='index'>
         <View className='season-input-body'>
           <Input
-            type='number'
-            placeholder='请输入神秘代码，如28229293'
+            placeholder='搜索关键字'
             style={{marginBottom: 20}}
             value={mediaId}
             onInput={e => this.props.changeMediaId(e.detail.value)}
@@ -70,11 +69,11 @@ class Index extends Component<IProps> {
             className='media-button'
           >{queryLoading ? '正在查询' : '查询番剧'}</Button>
 
-          {/*{*/}
-          {/*  mediaData && sectionData && (*/}
-          {/*    <MediaData mediaData={mediaData} sectionData={sectionData} />*/}
-          {/*  )*/}
-          {/*}*/}
+          {
+            searchResults && searchResults.length > 0 && (
+              <View style='margin-top: 20px;'>共{searchResults.length}条</View>
+            )
+          }
 
           <ScrollView
             className='search-scroll-view'

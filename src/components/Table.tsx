@@ -10,11 +10,15 @@ export interface ITableProps<T> {
     key: string;
     dataIndex: string;
     render?: (o: any) => ReactNode;
-  }[]
+  }[];
+  keyRatio?: number;
 }
 
 export function Table<T> (props: ITableProps<T>) {
-  const { dataObject, columns } = props;
+  const { dataObject, columns, keyRatio = 0.2 } = props;
+  const keyFlex = Math.floor(100 * keyRatio);
+  const valueFlex = 100 - keyFlex;
+
   return (
     <View className='table'>
       {
@@ -22,8 +26,8 @@ export function Table<T> (props: ITableProps<T>) {
           .filter(o => (dataObject as any).hasOwnProperty(o.dataIndex))
           .map(({ key, dataIndex, title, render }) => (
             <View key={key} className='row'>
-              <View className='key'>{title}</View>
-              <Text className='value'>
+              <View className='key' style={`flex: ${keyFlex}`}>{title}</View>
+              <Text className='value' style={`flex: ${valueFlex}`}>
                 {
                   render ? render(dataObject[dataIndex]) : dataObject[dataIndex]
                 }

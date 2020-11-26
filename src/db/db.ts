@@ -1,5 +1,6 @@
 import Taro from '@tarojs/taro';
-import {ISearchResult} from "../typings";
+import {Ep, ISearchResult} from "../typings";
+import {toast} from "../utils";
 
 // const dbSample = {
 //   media: [
@@ -13,12 +14,17 @@ import {ISearchResult} from "../typings";
 //         state: '在看',
 //         score: 4.4, // 用户评分 10满
 //         eps: [
-//           { id: 15, state: '0/1/时间戳', } // state: 看完，没看，看到某个时间点
+//           { id: 15, state: '0/1', } // state: 没看, 看完
 //         ],
 //       },
 //     }
 //   ],
 // };
+
+export interface LocalEp {
+  id: number;
+  state: string;
+}
 
 export interface ILocalMedia {
   id: string; // media id
@@ -26,10 +32,7 @@ export interface ILocalMedia {
   localData: {
     state: string;
     score: number;
-    eps: {
-      id: number;
-      state: string;
-    }[];
+    eps: LocalEp[];
   };
 }
 
@@ -41,15 +44,12 @@ export const db = {
       if (result) {
         return JSON.parse(result);
       } else {
+
         return [];
       }
     },
     listByState (state: string): ILocalMedia[] {
-      console.log(555, this.list());
       return this.list().filter(obj => obj.localData.state === state);
-    },
-    update () {
-
     },
     updateState(data: ISearchResult, newState: string) {
       const list = this.list();
@@ -87,12 +87,51 @@ export const db = {
       }
       storage.set(this.key, JSON.stringify(newValue));
     },
-    getState (mediaId: number) {
+    getState (mediaId) {
       const list = this.list().filter(obj => obj.serverData.media_id === mediaId);
       if (list.length > 0) {
         return list[0].localData.state;
       }
       return null;
+    },
+    getItem (mediaId: number) {
+      return this.list().filter(obj => obj.serverData.media_id === mediaId)[0];
+    },
+    getLocalEps (mediaId: number) {
+      const result = this.getItem(mediaId);
+      if (result) {
+        return result.localData.eps || [];
+      }
+      return [];
+    },
+    setEpState (mediaId: string, data: Ep, newState: string) {
+      const list = this.list();
+      const item = list.filter(obj => obj.id + '' === mediaId)[0];
+      if (!item) {
+        return toast('数据错误: setEpState');
+      }
+      let hit = false;
+      if (!item.localData.eps) {
+        item.localData.eps = [];
+      }
+      for (let i = 0; i < item.localData.eps.length; i++) {
+        const obj = item.localData.eps[i];
+        console.log('for', obj.id, data.id);
+        if (obj.id === data.id) {
+          console.log('hit', newState);
+          obj.state = newState;
+          hit = true;
+          break;
+        }
+      }
+      if (!hit) {
+        item.localData.eps.push({
+          id: data.id,
+          state: newState,
+        });
+      }
+      console.log('setEpState/newList', list);
+      storage.set(this.key, JSON.stringify(list));
     },
   },
 };

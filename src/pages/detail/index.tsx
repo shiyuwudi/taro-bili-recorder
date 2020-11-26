@@ -1,15 +1,15 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import {ScrollView, Text, View, Radio, RadioGroup, Label} from '@tarojs/components'
-import {getCurrentInstance} from '@tarojs/taro'
+import {Label, Radio, RadioGroup, ScrollView, Text, View} from '@tarojs/components'
+import Taro, {getCurrentInstance} from '@tarojs/taro'
 import moment from 'moment';
-
-import {changeMediaIdAction, getSectionAction} from '../../actions/counter'
 import './index.less'
 import {Ep, ICounter, ISearchResult} from "../../typings";
 import {Card} from "../../components/Card";
 import {Table} from "../../components/Table";
-import {db} from "../../db/db";
+import {db, LocalEp} from "../../db/db";
+import {toast} from "../../utils";
+import {EP_STATE, MEDIA_STATE} from "../../constants";
 
 type PageStateProps = {
   counter: ICounter;
@@ -27,6 +27,7 @@ type IProps = PageStateProps & PageDispatchProps & PageOwnProps
 export interface IState {
   data?: ISearchResult;
   state?: string;
+  mediaId?: string;
 }
 
 export interface IPageRadioProps {
@@ -45,23 +46,22 @@ class PageRadio extends Component<IPageRadioProps, IPageRadioState> {
     const initialState = {
       list: [
         {
-          value: '想看',
-          text: '想看',
+          value: MEDIA_STATE.想看,
+          text: MEDIA_STATE.想看,
           checked: false
         },
         {
-          value: '在看',
-          text: '在看',
+          value: MEDIA_STATE.在看,
+          text: MEDIA_STATE.在看,
           checked: false
         },
         {
-          value: '弃坑',
-          text: '弃坑',
+          value: MEDIA_STATE.弃坑,
+          text: MEDIA_STATE.弃坑,
           checked: false
         },
       ]
     };
-    console.log(444, state);
     if (state) {
       initialState.list.forEach(item => {
         if (item.value === state) {
@@ -93,13 +93,6 @@ class PageRadio extends Component<IPageRadioProps, IPageRadioState> {
 
 @connect(({ counter }) => ({
   counter
-}), (dispatch) => ({
-  changeSeasonId (seasonId) {
-    dispatch(changeMediaIdAction(seasonId));
-  },
-  getSection (seasonId: string) {
-    dispatch(getSectionAction(seasonId));
-  },
 }))
 class Index extends Component<IProps, IState> {
 
@@ -108,17 +101,30 @@ class Index extends Component<IProps, IState> {
     this.state = {
       data: undefined,
     };
+    this.onEpClick = this.onEpClick.bind(this);
   }
 
   componentDidMount () {
-    const mediaId = getCurrentInstance().router!.params.mediaId;
-    const { searchResults } = this.props.counter;
-    const data = searchResults.filter(obj => obj.media_id+'' === mediaId)[0];
-    const result: string = db.media.getState(data.media_id);
-    this.setState({
-      data,
-      state: result,
-    });
+    const { mediaId, from } = getCurrentInstance().router!.params;
+    if (from === 'index') {
+      const { searchResults } = this.props.counter;
+      const data = searchResults.filter(obj => obj.media_id+'' === mediaId)[0];
+      const result: string = db.media.getState(data.media_id);
+      this.setState({
+        data,
+        state: result,
+        mediaId,
+      });
+    } else {
+      const arr = db.media.list();
+      const data = arr.filter(obj => obj.id + '' === mediaId)[0];
+      const result: string = db.media.getState(data.id);
+      this.setState({
+        data: data.serverData,
+        state: result,
+        mediaId,
+      });
+    }
   }
 
   renderDesc (data: ISearchResult) {
@@ -148,16 +154,64 @@ class Index extends Component<IProps, IState> {
     );
   }
 
-  renderEp (data: Ep) {
+  onEpClick (ep: Ep) {
+    // id: 172119
+    console.log('onEpClick', ep);
+    const { refresh } = this;
+    const { state, mediaId } = this.state;
+    const itemList = [EP_STATE.没看, EP_STATE.看过];
+    Taro.showActionSheet({
+      itemList,
+      success: function (res: any) {
+        if (state !== MEDIA_STATE.在看) {
+          return toast('请先标记在看');
+        }
+        if (!mediaId) {
+          return toast('数据错误: mediaId');
+        }
+        db.media.setEpState(mediaId, ep, itemList[res.tapIndex]);
+        refresh();
+      },
+    })
+  }
+
+  refresh = () => {
+    this.forceUpdate();
+    toast('标记成功');
+  };
+
+  renderEp = (data: Ep, localEps: LocalEp[]) => {
     // url: "https://www.bilibili.com/bangumi/play/ep173305"
-    const text = `${data.title}.${data.long_title}${data.badges.join('/')}`;
+    const t = data.badges.map(o => o.text).join('/');
+    const badgeText = t ? `(${t})` : '';
+    const text = `${data.title}.${data.long_title}${badgeText}`;
     const ratio = 3;
+    let badge = EP_STATE.没看;
+    let badgeClassName = 'watch_0';
+    const match = localEps.filter(localEp => localEp.id === data.id)[0];
+    if (match) {
+      badge = match.state;
+      if (badge === EP_STATE.看过) {
+        badgeClassName = 'watch_1';
+      }
+    }
+    const title = (
+      <View className='ep-con'>
+        <Text className='title'>{text}</Text>
+      </View>
+    );
+    const desc = (
+      <Text className={`badge ${badgeClassName}`}>{badge}</Text>
+    );
     return (
-      <Card
-        imageStyle={`height: ${23 * ratio}px; width: ${37 * ratio}px;`}
-        src={data.cover}
-        title={<Text style='font-style: italic; font-size: 15px; font-weight: 100;'>{text}</Text>}
-      />
+      <View onClick={() => this.onEpClick(data)}>
+        <Card
+          imageStyle={`height: ${23 * ratio}px; width: ${37 * ratio}px;`}
+          src={data.cover}
+          title={title}
+          desc={desc}
+        />
+      </View>
     );
   }
 
@@ -167,11 +221,19 @@ class Index extends Component<IProps, IState> {
     // 入库
     if (!this.state.data) return;
     db.media.updateState(this.state.data, newState);
+    this.setState({
+      state: newState,
+    })
   }
 
   render () {
-    const { data } = this.state;
+    const { data, mediaId } = this.state;
     if (!data) return false;
+    let localEps = [];
+    if (mediaId) {
+      localEps = db.media.getLocalEps(+mediaId)
+    }
+    console.log('localEps', localEps);
     return (
       <View className='main'>
         <ScrollView
@@ -207,7 +269,7 @@ class Index extends Component<IProps, IState> {
             )}
           />
           {
-            data.eps.map(ep => (<View key={ep.id}>{this.renderEp(ep)}</View>))
+            data.eps.map(ep => (<View key={ep.id}>{this.renderEp(ep, localEps)}</View>))
           }
         </ScrollView>
       </View>
